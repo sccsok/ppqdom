@@ -15,11 +15,11 @@ class Moment:
         Input a gray image
         Output image moments
         """
-        if not npoly is None:
+        if npoly is not None:
             self.npoly = npoly
 
-        if not mpoly is None:
-            self.npoly = mpoly
+        if mpoly is not None:
+            self.mpoly = mpoly
 
         return np.dot(np.dot(self.npoly, image), self.mpoly.T)
 
@@ -29,11 +29,11 @@ class Moment:
         OutPut reconstructed image
         """
 
-        if not npoly is None:
+        if npoly is not None:
             self.npoly = npoly
 
-        if not mpoly is None:
-            self.npoly = mpoly
+        if mpoly is not None:
+            self.mpoly = mpoly
 
         part_hahn_moments = moments[0:n, 0:m]
         height, width = moments.shape
@@ -49,11 +49,11 @@ class Moment:
         Output quaternion hahn moments
         """
 
-        if not npoly is None:
+        if npoly is not None:
             self.npoly = npoly
 
-        if not mpoly is None:
-            self.npoly = mpoly
+        if mpoly is not None:
+            self.mpoly = mpoly
 
         height, width, _ = color_image.shape
         r_channel_moment = self.gray_moment(color_image[:, :, 0])
