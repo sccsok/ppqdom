@@ -13,17 +13,18 @@ class Cipher_Moment:
         self.v = v
         self.Q = Q
 
+    # PPQDOM
     def cipher_qua_moment(self, eimg, N, npoly=None, mpoly=None):
         """
         Input a gray image
         Output ciphertext moments
         """
 
-        if not npoly is None:
+        if npoly is not None:
             self.npoly = npoly
 
-        if not mpoly is None:
-            self.npoly = mpoly
+        if mpoly is not None:
+            self.mpoly = mpoly
 
         height, width, _ = eimg.shape
 
@@ -47,33 +48,41 @@ class Cipher_Moment:
                                       m4[n, m], m5[n, m], m6[n, m], m7[n, m]]
         return cipher_qua_moment
 
-    def recons_cipher_image(self, cipher_moment, n, m, npoly=None, mpoly=None):
+    #PPQCIR
+    def cipher_recons_image(self, cipher_moment, n, m, npoly=None, mpoly=None):
         """
         Get ciphertext reconstruction image
         """
 
-        if not npoly is None:
+        if npoly is not None:
             self.npoly = npoly
 
-        if not mpoly is None:
-            self.npoly = mpoly
+        if mpoly is not None:
+            self.mpoly = mpoly
 
         height, width, _ = cipher_moment.shape
 
         quan_npoly = np.round(self.Q * self.npoly).astype(np.int64)
         quan_mpoly = np.round(self.Q * self.mpoly).astype(np.int64)
-        print(quan_mpoly)
 
         cipher_image = np.zeros((height, width, 8), np.object)
 
-        channel0 = self.type.inv_gray_moment(cipher_moment[:, :, 0], n, m, npoly=quan_npoly, mpoly=quan_mpoly)
-        channel1 = self.type.inv_gray_moment(cipher_moment[:, :, 1], n, m, npoly=quan_npoly, mpoly=quan_mpoly)
-        channel2 = self.type.inv_gray_moment(cipher_moment[:, :, 2], n, m, npoly=quan_npoly, mpoly=quan_mpoly)
-        channel3 = self.type.inv_gray_moment(cipher_moment[:, :, 3], n, m, npoly=quan_npoly, mpoly=quan_mpoly)
-        channel4 = self.type.inv_gray_moment(cipher_moment[:, :, 4], n, m, npoly=quan_npoly, mpoly=quan_mpoly)
-        channel5 = self.type.inv_gray_moment(cipher_moment[:, :, 5], n, m, npoly=quan_npoly, mpoly=quan_mpoly)
-        channel6 = self.type.inv_gray_moment(cipher_moment[:, :, 6], n, m, npoly=quan_npoly, mpoly=quan_mpoly)
-        channel7 = self.type.inv_gray_moment(cipher_moment[:, :, 7], n, m, npoly=quan_npoly, mpoly=quan_mpoly)
+        channel0 = self.type.inv_gray_moment(cipher_moment[:, :, 0], n, m, npoly=quan_npoly,
+                                             mpoly=quan_mpoly, flag=False)
+        channel1 = self.type.inv_gray_moment(cipher_moment[:, :, 1], n, m, npoly=quan_npoly,
+                                             mpoly=quan_mpoly, flag=False)
+        channel2 = self.type.inv_gray_moment(cipher_moment[:, :, 2], n, m, npoly=quan_npoly,
+                                             mpoly=quan_mpoly, flag=False)
+        channel3 = self.type.inv_gray_moment(cipher_moment[:, :, 3], n, m, npoly=quan_npoly,
+                                             mpoly=quan_mpoly, flag=False)
+        channel4 = self.type.inv_gray_moment(cipher_moment[:, :, 4], n, m, npoly=quan_npoly,
+                                             mpoly=quan_mpoly, flag=False)
+        channel5 = self.type.inv_gray_moment(cipher_moment[:, :, 5], n, m, npoly=quan_npoly,
+                                             mpoly=quan_mpoly, flag=False)
+        channel6 = self.type.inv_gray_moment(cipher_moment[:, :, 6], n, m, npoly=quan_npoly,
+                                             mpoly=quan_mpoly, flag=False)
+        channel7 = self.type.inv_gray_moment(cipher_moment[:, :, 7], n, m, npoly=quan_npoly,
+                                             mpoly=quan_mpoly, flag=False)
 
         for y in range(height):
             for x in range(width):
@@ -89,8 +98,18 @@ class Cipher_Moment:
                 plain_moments[n, m] = self.v.decrypt(S, cipher_moments[n, m]) / math.sqrt(3) / self.Q ** 2
         return plain_moments
 
+    def decrypt_cipher_image(self, cipher_image, S):
+        h, w, c = cipher_image.shape
+        plain_image = np.zeros((h, w, 3))
+        for y in range(h):
+            for x in range(w):
+                plain_image[y, x] = self.v.decrypt(S, cipher_image[y, x])[1:4] / 3 / Q ** 4
+        plain_image = np.abs(np.round(plain_image)).astype(np.uint8)
+        return plain_image
+
 
 if __name__ == '__main__':
+    print("Initial parameters... ")
     N = 4
     stdev = 3.2
     w = generate_prime(78)
@@ -109,21 +128,24 @@ if __name__ == '__main__':
 
     image = cv2.imread('../data/baboon.ppm')
     if image.shape[0] > 256:
-        image = cv2.resize(image, (4, 4))
+        image = cv2.resize(image, (256, 256))
 
     h, w, _ = image.shape
     type = Moment(tch_ploy(h), tch_ploy(w))
     cm = Cipher_Moment(type, v, Q)
 
+    print("image encryption...")
     cipher_image = v.encrypt_image(image, N, M)
     # cv2.imshow("deimg", v.decrypt_image(cipher_image, S))
     # cv2.waitKey()
 
-    print(type.qua_moment(image))
+    print("test cipher quaternion moments(PPQDOM)...")
+    # print(type.qua_moment(image))
     cipher_moments = cm.cipher_qua_moment(cipher_image, N)
-    print(cm.decrypt_cipher_moments(cipher_moments, SS))
-    # cipher_image = cm.recons_cipher_image(cipher_moments, Q, 256 ,256)
-    #
-    # cv2.imshow("deimg", v.decrypt_image(cipher_image, SSS))
-    # cv2.waitKey()
+    # print(cm.decrypt_cipher_moments(cipher_moments, SS))
+
+    print("test cipher image reconstruction...(PPQCIR)")
+    cipher_image = cm.cipher_recons_image(cipher_moments, 256, 256)
+    cv2.imshow("dst", cm.decrypt_cipher_image(cipher_image, SSS))
+    cv2.waitKey()
 
