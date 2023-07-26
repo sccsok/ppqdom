@@ -1,6 +1,6 @@
 # Privacy-preserving color image feature extraction by quaternion discrete orthogonal moments
 
-[[Paper]]([https:](https://ieeexplore.ieee.org/abstract/document/9762698/))
+[[Paper]] (https://ieeexplore.ieee.org/abstract/document/9762698/)
 
 ## Approach
 
